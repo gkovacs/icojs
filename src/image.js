@@ -4,16 +4,22 @@ const Jimp = require('jimp');
 
 const bufferToArrayBuffer = require('./utils/buffer-to-arraybuffer');
 
+/**
+ * @access private
+ * @typedef imageData
+ * @type Object
+ * @property {Number} width image width
+ * @property {Numbrt} height image height
+ * @property {Uint8ClampedArray} data same
+ */
+
 const Image = {
   /**
-   * Create png from imgData.data
+   * Create image from imageData.data
    * @access private
-   * @param {Object} image data
-   * @param {Number} image.width img width
-   * @param {Number} image.height img height
-   * @param {Uint8ClampedArray} image.data same as imageData.data
+   * @param {imageData} image imageData
    * @param {String} mime Mime type
-   * @returns {ArrayBuffer} image
+   * @returns {ArrayBuffer} encoded image
    */
   encode (image, mime) {
     const data = image.data;
@@ -34,6 +40,19 @@ const Image = {
         }
       });
     });
+  },
+  /**
+   * Create imageData.data from image
+   * @access private
+   * @param {ArrayBuffer} buffer image buffer
+   * @returns {imageData} imageData
+   */
+  decode (buffer) {
+    return Jimp.read(new Buffer(buffer)).then(image => ({
+      width: image.bitmap.width,
+      height: image.bitmap.height,
+      data: new Uint8ClampedArray(image.bitmap.data)
+    }));
   }
 };
 

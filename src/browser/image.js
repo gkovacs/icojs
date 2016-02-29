@@ -9,16 +9,22 @@ const dataURLToArrayBuffer = dataURL => {
   return view.buffer;
 };
 
+/**
+ * @access private
+ * @typedef imageData
+ * @type Object
+ * @property {Number} width image width
+ * @property {Numbrt} height image height
+ * @property {Uint8ClampedArray} data same
+ */
+
 const Image = {
   /**
-   * Create png from imgData.data
+   * Create image from imageData.data
    * @access private
-   * @param {Object} image data
-   * @param {Number} image.width img width
-   * @param {Number} image.height img height
-   * @param {Uint8ClampedArray} image.data same as imageData.data
+   * @param {imageData} image imageData
    * @param {String} mime Mime type
-   * @returns {ArrayBuffer} png
+   * @returns {ArrayBuffer} encoded image
    */
   encode (image, mime) {
     return new Promise(resolve => {
@@ -34,6 +40,29 @@ const Image = {
       }
       ctx.putImageData(imageData, 0, 0);
       resolve(dataURLToArrayBuffer(canvas.toDataURL(mime || 'image/png')));
+    });
+  },
+  /**
+   * Create imageData.data from image
+   * @access private
+   * @param {ArrayBuffer} buffer image buffer
+   * @returns {imageData} imageData
+   */
+  decode (buffer) {
+    return new Promise(resolve => {
+      const url = global.URL.createObjectURL(new global.Blob([buffer]));
+      const img = global.document.createElement('img');
+      img.src = url;
+      img.onload = () => {
+        const width = img.naturalWidth;
+        const height = img.naturalHeight;
+        const canvas = global.document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        resolve(ctx.getImageData(0, 0, width, height));
+      };
     });
   }
 };
